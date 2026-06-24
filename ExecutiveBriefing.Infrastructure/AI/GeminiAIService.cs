@@ -90,6 +90,102 @@ namespace ExecutiveBriefing.Infrastructure.AI
             }
         }
 
+        public async Task<(string? WebsiteUrl, string? IrPageUrl)> DiscoverCompanyUrlsAsync(
+            CompanyName companyName,
+            string? market,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(_apiKey))
+            {
+                // Fallback mock URLs for local testing
+                if (companyName.Value.Equals("Google", StringComparison.OrdinalIgnoreCase))
+                {
+                    return ("https://www.google.com", "https://abc.xyz/investor");
+                }
+                return ($"https://www.{companyName.Value.ToLower().Replace(" ", "")}.com", null);
+            }
+
+            var prompt = $"Identify the official main website URL and the Investor Relations page URL for the company '{companyName.Value}' (Market: {market ?? "Global"}). " +
+                         "Respond ONLY with a valid raw JSON object matching this schema: { \"websiteUrl\": \"https://...\", \"irPageUrl\": \"https://...\" }. " +
+                         "Do not include markdown code block formatting like ```json or any other text.";
+
+            var requestBody = new
+            {
+                contents = new[]
+                {
+                    new
+                    {
+                        parts = new[]
+                        {
+                            new { text = prompt }
+                        }
+                    }
+                },
+                tools = new[]
+                {
+                    new { google_search = new { } }
+                }
+            };
+
+            var url = $"{_baseUrl}{_model}:generateContent?key={_apiKey}";
+            var requestContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await _httpClient.PostAsync(url, requestContent, cancellationToken);
+                response.EnsureSuccessStatusCode();
+
+                var jsonString = await response.Content.ReadAsStringAsync(cancellationToken);
+                using var doc = JsonDocument.Parse(jsonString);
+                var textResponse = doc.RootElement
+                    .GetProperty("candidates")[0]
+                    .GetProperty("content")
+                    .GetProperty("parts")[0]
+                    .GetProperty("text")
+                    .GetString();
+
+                if (string.IsNullOrWhiteSpace(textResponse))
+                {
+                    return (null, null);
+                }
+
+                // Clean markdown code blocks if the model included them anyway
+                var cleanedText = textResponse.Trim();
+                if (cleanedText.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
+                {
+                    cleanedText = cleanedText["```json".Length..].Trim();
+                }
+                if (cleanedText.StartsWith("```", StringComparison.OrdinalIgnoreCase))
+                {
+                    cleanedText = cleanedText["```".Length..].Trim();
+                }
+                if (cleanedText.EndsWith("```"))
+                {
+                    cleanedText = cleanedText[..^"```".Length].Trim();
+                }
+
+                using var parsedResponse = JsonDocument.Parse(cleanedText);
+                var root = parsedResponse.RootElement;
+                string? website = null;
+                string? ir = null;
+
+                if (root.TryGetProperty("websiteUrl", out var webProp))
+                {
+                    website = webProp.GetString();
+                }
+                if (root.TryGetProperty("irPageUrl", out var irProp))
+                {
+                    ir = irProp.GetString();
+                }
+
+                return (string.IsNullOrWhiteSpace(website) ? null : website, string.IsNullOrWhiteSpace(ir) ? null : ir);
+            }
+            catch (Exception)
+            {
+                return (null, null);
+            }
+        }
+
         private static List<BriefingSection> ParseMarkdownToSections(string markdown)
         {
             var sections = new List<BriefingSection>();
@@ -139,3 +235,4 @@ namespace ExecutiveBriefing.Infrastructure.AI
         }
     }
 }
+

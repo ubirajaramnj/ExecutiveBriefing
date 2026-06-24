@@ -191,6 +191,54 @@ namespace ExecutiveBriefing.ApplicationServices.Tests
             capturedSources.Should().NotBeNull();
             capturedSources.Should().BeEquivalentTo(result.Sources);
         }
+
+        [Fact]
+        public async Task GenerateBriefingAsync_Should_AutoDiscoverUrls_When_Not_Provided()
+        {
+            // Arrange
+            var companyName = "Microsoft";
+            var market = "US";
+
+            _aiServiceMock.Setup(a => a.DiscoverCompanyUrlsAsync(
+                    It.IsAny<CompanyName>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(("microsoft.com", "microsoft.com/investor"));
+
+            _webScraperMock.Setup(w => w.ScrapeUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("Mock text content");
+
+            _aiServiceMock.Setup(a => a.GenerateBriefingSectionsAsync(
+                    It.IsAny<CompanyName>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyCollection<SourceMaterial>>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<BriefingSection>());
+
+            // Act
+            var result = await _briefingService.GenerateBriefingAsync(
+                companyName,
+                market,
+                null,
+                null,
+                new List<string>(),
+                new List<(string Filename, Stream Content)>(),
+                CancellationToken.None
+            );
+
+            // Assert
+            result.WebsiteUrl.Should().Be("microsoft.com");
+            result.IRPageUrl.Should().Be("microsoft.com/investor");
+
+            _aiServiceMock.Verify(a => a.DiscoverCompanyUrlsAsync(
+                It.Is<CompanyName>(c => c.Value == "Microsoft"),
+                "US",
+                It.IsAny<CancellationToken>()), Times.Once);
+
+            _webScraperMock.Verify(w => w.ScrapeUrlAsync("microsoft.com", It.IsAny<CancellationToken>()), Times.Once);
+            _webScraperMock.Verify(w => w.ScrapeUrlAsync("microsoft.com/investor", It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }
+
 

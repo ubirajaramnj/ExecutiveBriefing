@@ -34,6 +34,21 @@ namespace ExecutiveBriefing.ApplicationServices.Services
             CancellationToken cancellationToken = default)
         {
             var companyName = new CompanyName(companyNameStr);
+
+            // Auto-discover URLs if not provided
+            if (string.IsNullOrWhiteSpace(websiteUrl) || string.IsNullOrWhiteSpace(irPageUrl))
+            {
+                var discovered = await _aiService.DiscoverCompanyUrlsAsync(companyName, market, cancellationToken);
+                if (string.IsNullOrWhiteSpace(websiteUrl))
+                {
+                    websiteUrl = discovered.WebsiteUrl;
+                }
+                if (string.IsNullOrWhiteSpace(irPageUrl))
+                {
+                    irPageUrl = discovered.IrPageUrl;
+                }
+            }
+
             var briefing = Briefing.Create(companyName, market, websiteUrl, irPageUrl);
 
             // Gather sources
