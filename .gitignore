@@ -1,0 +1,25 @@
+## Visual Studio / dotnet template gitignore
+[Db]in/
+[Oo]bj/
+[Tt]emp/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+.vscode/
+
+## User Secrets & Local Config
+appsettings.Development.json
+secrets.json
+.env
+.env.*
+!.env.example
+
+## Spec-Kit specific ignores
+.agents/credentials.txt
+.agents/tokens.json
+.agents/secrets/
+.specify/memory/drafts/
+C:\Users\ubira\.gemini\antigravity-ide\browser_recordings/
+C:\Users\ubira\.gemini\antigravity-ide\brain/

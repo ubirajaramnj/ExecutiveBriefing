@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ExecutiveBriefing.Api/ExecutiveBriefing.Api.csproj" Id="c7ee660d-2bcf-48ef-8b29-b423e7c0cebc" />
+  <Project Path="ExecutiveBriefing.Domain/ExecutiveBriefing.Domain.csproj" />
+  <Project Path="ExecutiveBriefing.Infrastructure/ExecutiveBriefing.Infrastructure.csproj" />
+</Solution>
