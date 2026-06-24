@@ -67,5 +67,27 @@ namespace ExecutiveBriefing.Domain.Tests
             id2.Value.Should().NotBeEmpty();
             id1.Should().NotBe(id2);
         }
+
+        [Fact]
+        public void SourceMaterial_Should_ThrowArgumentException_When_ReferenceNameIsEmpty()
+        {
+            // Act
+            var action = () => SourceMaterial.Create(SourceType.WebPage, "", "Content");
+
+            // Assert
+            action.Should().Throw<ArgumentException>()
+                .WithMessage("Reference name cannot be empty.*");
+        }
+
+        [Fact]
+        public void SourceMaterial_Should_ThrowArgumentException_When_ContentIsEmpty()
+        {
+            // Act
+            var action = () => SourceMaterial.Create(SourceType.Upload, "file.pdf", "");
+
+            // Assert
+            action.Should().Throw<ArgumentException>()
+                .WithMessage("Source content cannot be empty.*");
+        }
     }
 }

@@ -69,17 +69,17 @@
 **Independent Test**: Upload a PDF and verify its content is parsed and incorporated into the briefing.
 
 ### Tests for User Story 2 (TDD - Required) ⚠️
-- [ ] T019 [P] [US2] Write failing unit tests for `SourceMaterial` value object in `ExecutiveBriefing.Domain.Tests/ValueObjectsTests.cs` (Red)
-- [ ] T020 [P] [US2] Write failing unit tests for `PdfParser` in `ExecutiveBriefing.Infrastructure.Tests/PdfParserTests.cs` (Red)
-- [ ] T021 [US2] Write failing unit tests for `BriefingService` attachment integration in `ExecutiveBriefing.ApplicationServices.Tests/BriefingServiceTests.cs` (Red)
-- [ ] T022 [US2] Write failing integration tests for endpoint file upload in `ExecutiveBriefing.Infrastructure.Tests/BriefingsControllerTests.cs` (Red)
+- [x] T019 [P] [US2] Write failing unit tests for `SourceMaterial` value object in `ExecutiveBriefing.Domain.Tests/ValueObjectsTests.cs` (Red)
+- [x] T020 [P] [US2] Write failing unit tests for `PdfParser` in `ExecutiveBriefing.Infrastructure.Tests/PdfParserTests.cs` (Red)
+- [x] T021 [US2] Write failing unit tests for `BriefingService` attachment integration in `ExecutiveBriefing.ApplicationServices.Tests/BriefingServiceTests.cs` (Red)
+- [x] T022 [US2] Write failing integration tests for endpoint file upload in `ExecutiveBriefing.Infrastructure.Tests/BriefingsControllerTests.cs` (Red)
 
 ### Implementation for User Story 2
-- [ ] T023 [P] [US2] Implement `SourceMaterial` in `ExecutiveBriefing.Domain/ValueObjects/SourceMaterial.cs` (Green)
-- [ ] T024 [P] [US2] Create application interface `IPdfParser` in `ExecutiveBriefing.ApplicationServices/Interfaces/IPdfParser.cs`
-- [ ] T025 [US2] Implement `PdfParser` using `UglyToad.PdfPig` in `ExecutiveBriefing.Infrastructure/Parsers/PdfParser.cs` (Green)
-- [ ] T026 [US2] Update `BriefingService` in `ExecutiveBriefing.ApplicationServices/Services/BriefingService.cs` to process links and file streams (Green)
-- [ ] T027 [US2] Update `BriefingsController` in `ExecutiveBriefing.Api/Controllers/BriefingsController.cs` to accept file uploads (Green)
+- [x] T023 [P] [US2] Implement `SourceMaterial` in `ExecutiveBriefing.Domain/ValueObjects/SourceMaterial.cs` (Green)
+- [x] T024 [P] [US2] Create application interface `IPdfParser` in `ExecutiveBriefing.ApplicationServices/Interfaces/IPdfParser.cs`
+- [x] T025 [US2] Implement `PdfParser` using `UglyToad.PdfPig` in `ExecutiveBriefing.Infrastructure/Parsers/PdfParser.cs` (Green)
+- [x] T026 [US2] Update `BriefingService` in `ExecutiveBriefing.ApplicationServices/Services/BriefingService.cs` to process links and file streams (Green)
+- [x] T027 [US2] Update `BriefingsController` in `ExecutiveBriefing.Api/Controllers/BriefingsController.cs` to accept file uploads (Green)
 
 ---
 

@@ -78,5 +78,47 @@ namespace ExecutiveBriefing.ApplicationServices.Tests
 
             _briefingRepositoryMock.Verify(r => r.SaveAsync(It.IsAny<Briefing>(), It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        [Fact]
+        public async Task GenerateBriefingAsync_Should_Parse_Attachments_When_Uploaded()
+        {
+            // Arrange
+            var companyName = "Microsoft";
+            var mockSections = new List<BriefingSection>
+            {
+                BriefingSection.Create("Overview", "Microsoft overview", 1)
+            };
+
+            _pdfParserMock.Setup(p => p.ParsePdfAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("Extracted PDF content");
+
+            _aiServiceMock.Setup(a => a.GenerateBriefingSectionsAsync(
+                    It.IsAny<CompanyName>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyCollection<SourceMaterial>>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockSections);
+
+            using var memoryStream = new MemoryStream(new byte[] { 1, 2, 3 });
+
+            // Act
+            var result = await _briefingService.GenerateBriefingAsync(
+                companyName,
+                null,
+                null,
+                null,
+                new List<string>(),
+                new List<(string Filename, Stream Content)> { ("report.pdf", memoryStream) },
+                CancellationToken.None
+            );
+
+            // Assert
+            result.Sources.Should().ContainSingle();
+            result.Sources.First().ReferenceName.Should().Be("report.pdf");
+            result.Sources.First().Content.Should().Be("Extracted PDF content");
+            result.Sources.First().Type.Should().Be(SourceType.Upload);
+
+            _pdfParserMock.Verify(p => p.ParsePdfAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }
