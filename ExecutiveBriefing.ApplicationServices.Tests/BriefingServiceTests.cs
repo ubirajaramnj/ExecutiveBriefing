@@ -120,5 +120,77 @@ namespace ExecutiveBriefing.ApplicationServices.Tests
 
             _pdfParserMock.Verify(p => p.ParsePdfAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        [Fact]
+        public async Task GenerateBriefingAsync_Should_Scrape_IRPageAndAdditionalLinks_When_Provided()
+        {
+            // Arrange
+            var companyName = "Apple";
+            var market = "US";
+            var websiteUrl = "apple.com";
+            var irPageUrl = "investor.apple.com";
+            var additionalLinks = new List<string> { "apple.com/newsroom", "apple.com/environment" };
+
+            var mockSections = new List<BriefingSection>
+            {
+                BriefingSection.Create("Financial Highlights", "Apple's financial highlights", 1)
+            };
+
+            // Set up scraping behavior for specific URLs
+            _webScraperMock.Setup(w => w.ScrapeUrlAsync("apple.com", It.IsAny<CancellationToken>()))
+                .ReturnsAsync("Apple Web Content");
+            _webScraperMock.Setup(w => w.ScrapeUrlAsync("investor.apple.com", It.IsAny<CancellationToken>()))
+                .ReturnsAsync("Apple IR Content");
+            _webScraperMock.Setup(w => w.ScrapeUrlAsync("apple.com/newsroom", It.IsAny<CancellationToken>()))
+                .ReturnsAsync("Apple News Content");
+            _webScraperMock.Setup(w => w.ScrapeUrlAsync("apple.com/environment", It.IsAny<CancellationToken>()))
+                .ReturnsAsync("Apple Env Content");
+
+            IReadOnlyCollection<SourceMaterial>? capturedSources = null;
+
+            _aiServiceMock.Setup(a => a.GenerateBriefingSectionsAsync(
+                    It.IsAny<CompanyName>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyCollection<SourceMaterial>>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<CompanyName, string, IReadOnlyCollection<SourceMaterial>, CancellationToken>((name, mkt, src, token) => capturedSources = src)
+                .ReturnsAsync(mockSections);
+
+            // Act
+            var result = await _briefingService.GenerateBriefingAsync(
+                companyName,
+                market,
+                websiteUrl,
+                irPageUrl,
+                additionalLinks,
+                new List<(string Filename, Stream Content)>(),
+                CancellationToken.None
+            );
+
+            // Assert
+            result.Sources.Should().HaveCount(4);
+            
+            var webSource = result.Sources.FirstOrDefault(s => s.ReferenceName == "apple.com");
+            webSource.Should().NotBeNull();
+            webSource!.Content.Should().Be("Apple Web Content");
+            webSource.Type.Should().Be(SourceType.WebPage);
+
+            var irSource = result.Sources.FirstOrDefault(s => s.ReferenceName == "investor.apple.com");
+            irSource.Should().NotBeNull();
+            irSource!.Content.Should().Be("Apple IR Content");
+            irSource.Type.Should().Be(SourceType.WebPage);
+
+            var newsSource = result.Sources.FirstOrDefault(s => s.ReferenceName == "apple.com/newsroom");
+            newsSource.Should().NotBeNull();
+            newsSource!.Content.Should().Be("Apple News Content");
+
+            var envSource = result.Sources.FirstOrDefault(s => s.ReferenceName == "apple.com/environment");
+            envSource.Should().NotBeNull();
+            envSource!.Content.Should().Be("Apple Env Content");
+
+            capturedSources.Should().NotBeNull();
+            capturedSources.Should().BeEquivalentTo(result.Sources);
+        }
     }
 }
+

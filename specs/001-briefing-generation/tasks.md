@@ -90,12 +90,12 @@
 **Independent Test**: Verify briefing contains a "Financial Highlights" section sourced from scraped IR pages.
 
 ### Tests for User Story 3 (TDD - Required) ⚠️
-- [ ] T028 [P] [US3] Write failing unit tests for `WebScraper` (IR scraping logic) in `ExecutiveBriefing.Infrastructure.Tests/WebScraperTests.cs` (Red)
-- [ ] T029 [US3] Write failing unit tests for `BriefingService` IR flow in `ExecutiveBriefing.ApplicationServices.Tests/BriefingServiceTests.cs` (Red)
+- [x] T028 [P] [US3] Write failing unit tests for `WebScraper` (IR scraping logic) in `ExecutiveBriefing.Infrastructure.Tests/WebScraperTests.cs` (Red)
+- [x] T029 [US3] Write failing unit tests for `BriefingService` IR flow in `ExecutiveBriefing.ApplicationServices.Tests/BriefingServiceTests.cs` (Red)
 
 ### Implementation for User Story 3
-- [ ] T030 [US3] Implement real HTML scraper for IR links using `HtmlAgilityPack` in `ExecutiveBriefing.Infrastructure/Scrapers/WebScraper.cs` (Green)
-- [ ] T031 [US3] Update `BriefingService` in `ExecutiveBriefing.ApplicationServices/Services/BriefingService.cs` to feed scraped IR texts to prompt context (Green)
+- [x] T030 [US3] Implement real HTML scraper for IR links using `HtmlAgilityPack` in `ExecutiveBriefing.Infrastructure/Scrapers/WebScraper.cs` (Green)
+- [x] T031 [US3] Update `BriefingService` in `ExecutiveBriefing.ApplicationServices/Services/BriefingService.cs` to feed scraped IR texts to prompt context (Green)
 
 ---
 
@@ -103,9 +103,9 @@
 
 **Purpose**: General cleanup, quickstart validation, and standards checking
 
-- [ ] T032 Run quickstart validation scenario in `specs/001-briefing-generation/quickstart.md`
-- [ ] T033 Verify zero code drift and compliance with Clean Code and DDD rules in the constitution
-- [ ] T034 Complete OpenAPI Swagger annotations in `ExecutiveBriefing.Api/Controllers/BriefingsController.cs`
+- [x] T032 Run quickstart validation scenario in `specs/001-briefing-generation/quickstart.md`
+- [x] T033 Verify zero code drift and compliance with Clean Code and DDD rules in the constitution
+- [x] T034 Complete OpenAPI Swagger annotations in `ExecutiveBriefing.Api/Controllers/BriefingsController.cs`
 
 ---
 

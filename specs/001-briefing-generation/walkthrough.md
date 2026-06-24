@@ -1,6 +1,6 @@
-# Walkthrough: Executive Briefing Generation MVP (US1)
+# Walkthrough: Executive Briefing Generation Feature
 
-This walkthrough documents the successful implementation and verification of the Executive Briefing Generation MVP (User Story 1).
+This walkthrough documents the successful implementation and verification of the Executive Briefing Generation feature, including basic briefing generation, PDF attachments, Investor Relations web scraping, and OpenAPI documentation.
 
 ## Changes Made
 
@@ -13,19 +13,20 @@ This walkthrough documents the successful implementation and verification of the
 
 ### 2. Application Services Layer (`ExecutiveBriefing.ApplicationServices`)
 - Implemented [BriefingService](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.ApplicationServices/Services/BriefingService.cs) to coordinate:
-  - Scraped sources aggregation.
-  - LLM integration.
+  - Scraped sources aggregation (including IR pages and custom links).
+  - LLM integration via Gemini API.
   - Document saving/loading.
+  - PDF attachments parsing via `IPdfParser`.
 - Defined abstraction interfaces for external systems: `IAIService`, `IWebScraper`, and `IPdfParser`.
 
 ### 3. Infrastructure Layer (`ExecutiveBriefing.Infrastructure`)
 - Implemented [InMemoryBriefingRepository](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.Infrastructure/Repositories/InMemoryBriefingRepository.cs) to fulfill YAGNI.
-- Implemented [WebScraper](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.Infrastructure/Scrapers/WebScraper.cs) utilizing `HttpClient`.
+- Implemented [WebScraper](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.Infrastructure/Scrapers/WebScraper.cs) utilizing `HttpClient` and `HtmlAgilityPack` to extract clean content by removing script, style, header, footer, and navigation elements.
+- Implemented [PdfParser](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.Infrastructure/Parsers/PdfParser.cs) using `UglyToad.PdfPig` to extract text from uploaded PDF attachments.
 - Implemented [GeminiAIService](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.Infrastructure/AI/GeminiAIService.cs) calling Google Gemini Content API and parsing markdown sections.
-- Created a placeholder `PdfParser` for upcoming PDF integration.
 
 ### 4. API Layer (`ExecutiveBriefing.Api`)
-- Created [BriefingsController](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.Api/Controllers/BriefingsController.cs) supporting multipart form data inputs.
+- Created [BriefingsController](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.Api/Controllers/BriefingsController.cs) supporting multipart form data inputs, complete with XML comments and OpenAPI response type annotations.
 - Created [ExceptionHandlingMiddleware](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.Api/Middleware/ExceptionHandlingMiddleware.cs) for structured error reporting.
 - Registered dependency injections in [Program.cs](file:///c:/_dev/ExecutiveBriefing/ExecutiveBriefing.Api/Program.cs).
 
@@ -40,8 +41,9 @@ dotnet test
 ```
 
 ### Test Suite Output Summary:
-- **Domain Unit Tests**: 9 Passed (validations, identity generation, aggregate business invariants).
-- **Application Services Unit Tests**: 2 Passed (mock service orchestration, model mapping).
-- **Infrastructure/Integration Tests**: 2 Passed (API endpoint parsing, model returned from controller).
+- **Domain Unit Tests**: 11 Passed (validations, identity generation, aggregate business invariants, source material types).
+- **Application Services Unit Tests**: 4 Passed (mock service orchestration, model mapping, PDF attachment parsing, IR & additional links scraping flows).
+- **Infrastructure/Integration Tests**: 6 Passed (API endpoint parsing, model returned from controller, HTML WebScraper content isolation, PDF extraction).
 
-All 13 tests passed successfully.
+All 21 tests passed successfully.
+
