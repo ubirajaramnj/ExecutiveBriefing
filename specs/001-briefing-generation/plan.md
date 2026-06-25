@@ -34,6 +34,10 @@ The goal is to implement an ASP.NET Core 10 Web API service that automatically g
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
+- **User Stories (Phases 3-5)**: Depend on Foundational completion. Can run sequentially or in parallel.
+- **User Story 4 (Two-Part Briefing)**: Adds detailed 11-section briefing output (Parte 1 and Parte 2).
+- **Polish (Phase 6)**: Depends on all user stories completion.
+
 | Rule / Principle | Verification Method | Status |
 |------------------|---------------------|--------|
 | **Clean Architecture Layering** | Verify project dependencies: Domain has zero external dependencies; ApplicationServices depends only on Domain; Infrastructure and Api depend on ApplicationServices and Domain. | Pass |

@@ -99,7 +99,23 @@
 
 ---
 
+## Phase 5.5: User Story 4 - Two-Part Executive Briefing (Priority: P2)
+
+**Goal**: Extend the briefing generation to include Parte 2 (Liderança, Tecnologia e Prioridades Digitais).
+
+**Independent Test**: Verify that the briefing contains all 11 sections (8 from Part 1, 3 from Part 2) when generated.
+
+### Tests for User Story 4 (TDD - Required) ⚠️
+- [x] T035 [US4] Write failing unit tests in `ExecutiveBriefing.ApplicationServices.Tests/BriefingServiceTests.cs` to verify that the generated briefing contains the new sections of Part 2 (Red)
+
+### Implementation for User Story 4
+- [x] T036 [US4] Update prompt in `ExecutiveBriefing.Infrastructure/AI/GeminiAIService.cs` to include instructions and headings for the 3 sections of Part 2 (Green)
+- [x] T037 [US4] Update `GetMockSections` in `ExecutiveBriefing.Infrastructure/AI/GeminiAIService.cs` to return mock sections for Part 2 (Green)
+
+---
+
 ## Phase 6: Polish & Cross-Cutting Concerns
+
 
 **Purpose**: General cleanup, quickstart validation, and standards checking
 

@@ -48,24 +48,37 @@ As a financial analyst, I want the briefing to prioritize the Investor Relations
 
 ---
 
+### User Story 4 - Two-Part Executive Briefing (Priority: P2)
+As an executive/consultant, I want the briefing report to be structured into two large parts (Part 1: Company Briefing, Part 2: Leadership, Technology & Digital Priorities) so that I can have all corporate, financial, and technical context ready for my client meetings.
+
+**Why this priority**: Required for detailed stakeholder alignment and pre-meeting preparation, especially for technology and transformation conversations.
+
+**Independent Test**: Verify that the generated briefing contains all 8 sections of Part 1 and all 3 sections of Part 2 (including leadership structure and recommended meeting questions).
+
+**Acceptance Scenarios**:
+1. **Given** a company has public leadership and tech strategy data, **When** the briefing is generated, **Then** the system outputs a 2-part report containing Visão geral, Mercado, Dados financeiros, Resultados, Saúde do negócio, Estratégia, Notícias, SWOT, Organograma e liderança, Foco em Tecnologia, and Perguntas recomendadas para reunião.
+
+---
+
 ### Edge Cases
 - **No public data found**: If the company has no public website or IR page, the system must degrade gracefully, using only user-supplied attachments and links, and displaying a warning that public data was unavailable.
 - **Corrupt or unreadable attachment**: If an uploaded PDF is password-protected or corrupt, the system must notify the user immediately and allow them to proceed with the remaining inputs or upload a new file.
 
 ## Requirements *(mandatory)*
 
-### Functional Requirements
+## Functional Requirements
 - **FR-001**: System MUST accept user inputs: Company Name, Country/Market (optional), Website URL (optional), IR Page URL (optional), Additional Source Links (optional).
 - **FR-002**: System MUST support file upload for attachments (PDF, TXT, DOCX, presentation files).
 - **FR-003**: System MUST execute a prioritized search/scraping strategy targeting (in order): User uploads, manual links, official IR page, annual/quarterly reports, earnings call transcripts, news.
 - **FR-004**: System MUST parse and extract text content from uploaded PDF and text documents.
 - **FR-005**: System MUST aggregate and summarize public information gathered from web scraping.
-- **FR-006**: System MUST compile a structured, readable Executive Briefing document containing: Company Overview, Financial Performance, Strategic Outlook, Recent News/Events, and Sources List.
+- **FR-006**: System MUST compile a structured, readable Executive Briefing document.
 - **FR-007**: System MUST cite and list all sources used (e.g., specific URLs, uploaded files) at the end of the briefing.
+- **FR-008**: System MUST support generating Part 1 (Company Briefing: 8 sections) and Part 2 (Leadership & Tech Priorities: 3 sections) of the briefing report.
 
 ### Key Entities
 - **BriefingRequest**: Represents the user's input data (Company name, website, custom links, attached file references).
-- **ExecutiveBriefing**: The generated output document containing summarized sections (Overview, Financials, Strategy, News) and citations.
+- **ExecutiveBriefing**: The generated output document containing summarized sections and citations.
 - **SourceMaterial**: Represents a single piece of retrieved information (a web page content, scraped document, or uploaded attachment).
 
 ## Success Criteria *(mandatory)*
@@ -79,3 +92,4 @@ As a financial analyst, I want the briefing to prioritize the Investor Relations
 - The system has access to the internet for web searching and scraping.
 - Optical Character Recognition (OCR) for scanned PDFs is out of scope for the initial version.
 - User files upload size is capped at 15MB per file.
+

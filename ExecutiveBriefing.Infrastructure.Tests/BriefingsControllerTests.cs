@@ -50,11 +50,16 @@ namespace ExecutiveBriefing.Infrastructure.Tests
 
             // Act
             var response = await _client.PostAsync("/api/briefings", content);
+            var jsonString = await response.Content.ReadAsStringAsync();
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception($"Request failed. Status: {response.StatusCode}. Body: {jsonString}");
+            }
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            var jsonString = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(jsonString);
             var root = doc.RootElement;
 

@@ -33,7 +33,8 @@ namespace ExecutiveBriefing.Infrastructure.AI
         {
             var promptBuilder = new StringBuilder();
             promptBuilder.AppendLine($"Generate a professional executive briefing for the company '{companyName.Value}' (Market: {market ?? "Global"}).");
-            promptBuilder.AppendLine("Provide the output in valid markdown with the following sections exactly as headings (e.g. ## 1. Visão geral da empresa):");
+            promptBuilder.AppendLine("Provide the output in valid markdown with two main parts and the following sections exactly as headings (e.g. ## 1. Visão geral da empresa):");
+            promptBuilder.AppendLine("# PARTE 1 — BRIEFING EXECUTIVO DA EMPRESA");
             promptBuilder.AppendLine("## 1. Visão geral da empresa");
             promptBuilder.AppendLine("## 2. Mercado e posicionamento");
             promptBuilder.AppendLine("## 3. Dados financeiros");
@@ -42,6 +43,13 @@ namespace ExecutiveBriefing.Infrastructure.AI
             promptBuilder.AppendLine("## 6. Estratégia atual da empresa");
             promptBuilder.AppendLine("## 7. Notícias recentes");
             promptBuilder.AppendLine("## 8. SWOT objetiva");
+            promptBuilder.AppendLine("# PARTE 2 — LIDERANÇA, TECNOLOGIA E PRIORIDADES DIGITAIS");
+            promptBuilder.AppendLine("## 9. Organograma e liderança");
+            promptBuilder.AppendLine("  * Identificar principais executivos da empresa (CEO, CFO, COO, CIO, CTO, CDO, CISO, líderes de tecnologia, dados, digital, operações e transformação). Mapear o organograma executivo, descrever responsabilidades, missões e prioridades públicas dessas lideranças, informando fontes utilizadas.");
+            promptBuilder.AppendLine("## 10. Foco em Tecnologia");
+            promptBuilder.AppendLine("  * Aprofundar especificamente nas áreas de Tecnologia, Digital, Dados, Segurança, Inovação e Transformação. Gerar bullets sobre: planejamento estratégico de Tecnologia, prioridades atuais da área de Tecnologia, estratégia digital, projetos de transformação em andamento, uso de IA, automação, cloud, dados, analytics, cibersegurança, modernização de sistemas e últimas vitórias.");
+            promptBuilder.AppendLine("## 11. Perguntas recomendadas para reunião");
+            promptBuilder.AppendLine("  * Formular de 3 a 5 perguntas altamente qualificadas e personalizadas para reunião com executivos, focadas em desafios, oportunidades, tecnologia e negócios identificados no briefing.");
             promptBuilder.AppendLine("Base your analysis on the following source materials retrieved:");
 
             foreach (var source in sources)
@@ -218,9 +226,14 @@ namespace ExecutiveBriefing.Infrastructure.AI
             {
                 if (line.StartsWith("## ") || line.StartsWith("### "))
                 {
-                    if (currentTitle != null && currentContent.Length > 0)
+                    if (currentTitle != null)
                     {
-                        sections.Add(BriefingSection.Create(currentTitle, currentContent.ToString().Trim(), order++));
+                        var contentStr = currentContent.ToString().Trim();
+                        if (string.IsNullOrWhiteSpace(contentStr))
+                        {
+                            contentStr = "Informações não disponíveis.";
+                        }
+                        sections.Add(BriefingSection.Create(currentTitle, contentStr, order++));
                         currentContent.Clear();
                     }
                     currentTitle = line.Replace("##", "").Replace("###", "").Trim();
@@ -231,14 +244,24 @@ namespace ExecutiveBriefing.Infrastructure.AI
                 }
             }
 
-            if (currentTitle != null && currentContent.Length > 0)
+            if (currentTitle != null)
             {
-                sections.Add(BriefingSection.Create(currentTitle, currentContent.ToString().Trim(), order));
+                var contentStr = currentContent.ToString().Trim();
+                if (string.IsNullOrWhiteSpace(contentStr))
+                {
+                    contentStr = "Informações não disponíveis.";
+                }
+                sections.Add(BriefingSection.Create(currentTitle, contentStr, order));
             }
 
             if (sections.Count == 0)
             {
-                sections.Add(BriefingSection.Create("Executive Summary", markdown, 1));
+                var contentStr = markdown.Trim();
+                if (string.IsNullOrWhiteSpace(contentStr))
+                {
+                    contentStr = "Informações não disponíveis.";
+                }
+                sections.Add(BriefingSection.Create("Executive Summary", contentStr, 1));
             }
 
             return sections;
@@ -255,7 +278,10 @@ namespace ExecutiveBriefing.Infrastructure.AI
                 BriefingSection.Create("5. Saúde atual do negócio", "### Saúde\nMock Saúde atual do negócio.", 5),
                 BriefingSection.Create("6. Estratégia atual da empresa", "### Estratégia\nMock Estratégia atual da empresa.", 6),
                 BriefingSection.Create("7. Notícias recentes", "### Notícias\nMock Notícias recentes.", 7),
-                BriefingSection.Create("8. SWOT objetiva", "### SWOT\nMock SWOT objetiva.", 8)
+                BriefingSection.Create("8. SWOT objetiva", "### SWOT\nMock SWOT objetiva.", 8),
+                BriefingSection.Create("9. Organograma e liderança", "### Liderança\nMock Organograma e liderança.", 9),
+                BriefingSection.Create("10. Foco em Tecnologia", "### Tecnologia\nMock Foco em Tecnologia.", 10),
+                BriefingSection.Create("11. Perguntas recomendadas para reunião", "### Perguntas\nMock Perguntas recomendadas para reunião.", 11)
             };
         }
 

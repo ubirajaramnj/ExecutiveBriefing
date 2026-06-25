@@ -238,7 +238,63 @@ namespace ExecutiveBriefing.ApplicationServices.Tests
             _webScraperMock.Verify(w => w.ScrapeUrlAsync("microsoft.com", It.IsAny<CancellationToken>()), Times.Once);
             _webScraperMock.Verify(w => w.ScrapeUrlAsync("microsoft.com/investor", It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        [Fact]
+        public async Task GenerateBriefingAsync_Should_Generate_TwoPartBriefing_With_11_Sections()
+        {
+            // Arrange
+            var companyName = "Google";
+            var mockSections = new List<BriefingSection>
+            {
+                BriefingSection.Create("1. Visão geral da empresa", "Overview content", 1),
+                BriefingSection.Create("2. Mercado e posicionamento", "Market content", 2),
+                BriefingSection.Create("3. Dados financeiros", "Financials", 3),
+                BriefingSection.Create("4. Resultados recentes", "Results", 4),
+                BriefingSection.Create("5. Saúde atual do negócio", "Health", 5),
+                BriefingSection.Create("6. Estratégia atual da empresa", "Strategy", 6),
+                BriefingSection.Create("7. Notícias recentes", "News", 7),
+                BriefingSection.Create("8. SWOT objetiva", "SWOT", 8),
+                BriefingSection.Create("9. Organograma e liderança", "Leadership", 9),
+                BriefingSection.Create("10. Foco em Tecnologia", "Technology", 10),
+                BriefingSection.Create("11. Perguntas recomendadas para reunião", "Questions", 11)
+            };
+
+            _aiServiceMock.Setup(a => a.GenerateBriefingSectionsAsync(
+                    It.IsAny<CompanyName>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyCollection<SourceMaterial>>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockSections);
+
+            // Act
+            var result = await _briefingService.GenerateBriefingAsync(
+                companyName,
+                null,
+                null,
+                null,
+                new List<string>(),
+                new List<(string Filename, Stream Content)>(),
+                CancellationToken.None
+            );
+
+            // Assert
+            result.Sections.Should().HaveCount(11);
+            result.Sections.Select(s => s.Title).Should().ContainInOrder(
+                "1. Visão geral da empresa",
+                "2. Mercado e posicionamento",
+                "3. Dados financeiros",
+                "4. Resultados recentes",
+                "5. Saúde atual do negócio",
+                "6. Estratégia atual da empresa",
+                "7. Notícias recentes",
+                "8. SWOT objetiva",
+                "9. Organograma e liderança",
+                "10. Foco em Tecnologia",
+                "11. Perguntas recomendadas para reunião"
+            );
+        }
     }
 }
+
 
 
