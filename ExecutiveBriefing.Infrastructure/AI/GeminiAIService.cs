@@ -33,7 +33,15 @@ namespace ExecutiveBriefing.Infrastructure.AI
         {
             var promptBuilder = new StringBuilder();
             promptBuilder.AppendLine($"Generate a professional executive briefing for the company '{companyName.Value}' (Market: {market ?? "Global"}).");
-            promptBuilder.AppendLine("Provide the output in valid markdown with the following sections: Overview, Financial Highlights, Strategic Outlook, Recent News.");
+            promptBuilder.AppendLine("Provide the output in valid markdown with the following sections exactly as headings (e.g. ## 1. Visão geral da empresa):");
+            promptBuilder.AppendLine("## 1. Visão geral da empresa");
+            promptBuilder.AppendLine("## 2. Mercado e posicionamento");
+            promptBuilder.AppendLine("## 3. Dados financeiros");
+            promptBuilder.AppendLine("## 4. Resultados recentes");
+            promptBuilder.AppendLine("## 5. Saúde atual do negócio");
+            promptBuilder.AppendLine("## 6. Estratégia atual da empresa");
+            promptBuilder.AppendLine("## 7. Notícias recentes");
+            promptBuilder.AppendLine("## 8. SWOT objetiva");
             promptBuilder.AppendLine("Base your analysis on the following source materials retrieved:");
 
             foreach (var source in sources)
@@ -240,9 +248,14 @@ namespace ExecutiveBriefing.Infrastructure.AI
         {
             return new List<BriefingSection>
             {
-                BriefingSection.Create("Overview", $"### Overview of {companyName}\nThis is a mock overview for {companyName}.", 1),
-                BriefingSection.Create("Financial Highlights", $"### Financials\nMock financial highlights for {companyName}.", 2),
-                BriefingSection.Create("Strategic Outlook", $"### Strategy\nMock strategic direction.", 3)
+                BriefingSection.Create("1. Visão geral da empresa", $"### Visão geral da {companyName}\nMock Visão geral for {companyName}.", 1),
+                BriefingSection.Create("2. Mercado e posicionamento", "### Mercado\nMock Mercado e posicionamento.", 2),
+                BriefingSection.Create("3. Dados financeiros", "### Financeiro\nMock Dados financeiros.", 3),
+                BriefingSection.Create("4. Resultados recentes", "### Resultados\nMock Resultados recentes.", 4),
+                BriefingSection.Create("5. Saúde atual do negócio", "### Saúde\nMock Saúde atual do negócio.", 5),
+                BriefingSection.Create("6. Estratégia atual da empresa", "### Estratégia\nMock Estratégia atual da empresa.", 6),
+                BriefingSection.Create("7. Notícias recentes", "### Notícias\nMock Notícias recentes.", 7),
+                BriefingSection.Create("8. SWOT objetiva", "### SWOT\nMock SWOT objetiva.", 8)
             };
         }
 
