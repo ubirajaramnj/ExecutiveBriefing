@@ -60,6 +60,18 @@ As an executive/consultant, I want the briefing report to be structured into two
 
 ---
 
+### User Story 5 - Real Data Extraction & Inline Source Citation (Priority: P2)
+As an executive/consultant, I want the generated briefing to contain real data points (such as financial metrics, names, and projects) extracted from the client's documents (Investor Relations pages, annual reports, quarterly releases, institutional presentations, transcripts of earnings calls, market announcements, news, and attachments), and to explicitly cite the source of each fact in the text (e.g., `[Fonte: Relatório Anual 2025]`), so that I can confidently reference these numbers during client meetings.
+
+**Why this priority**: Executives need accurate, reliable numbers. Knowing the exact source of a data point builds credibility and avoids errors during client discussions.
+
+**Independent Test**: Verify that the briefing contains specific financial data (like revenue or EBITDA) and includes inline citations referencing the source document or link.
+
+**Acceptance Scenarios**:
+1. **Given** the system scrapes the IR page and finds links to annual reports/releases, **When** the briefing is generated, **Then** it downloads and parses those documents, extracts real figures, and cites them using the format `[Fonte: <Nome da Fonte>]`.
+
+---
+
 ### Edge Cases
 - **No public data found**: If the company has no public website or IR page, the system must degrade gracefully, using only user-supplied attachments and links, and displaying a warning that public data was unavailable.
 - **Corrupt or unreadable attachment**: If an uploaded PDF is password-protected or corrupt, the system must notify the user immediately and allow them to proceed with the remaining inputs or upload a new file.
@@ -75,6 +87,7 @@ As an executive/consultant, I want the briefing report to be structured into two
 - **FR-006**: System MUST compile a structured, readable Executive Briefing document.
 - **FR-007**: System MUST cite and list all sources used (e.g., specific URLs, uploaded files) at the end of the briefing.
 - **FR-008**: System MUST support generating Part 1 (Company Briefing: 8 sections) and Part 2 (Leadership & Tech Priorities: 3 sections) of the briefing report.
+- **FR-009**: System MUST extract real figures, names, and facts and include inline citations in the format `[Fonte: <Nome da Fonte>]` within the generated sections.
 
 ### Key Entities
 - **BriefingRequest**: Represents the user's input data (Company name, website, custom links, attached file references).

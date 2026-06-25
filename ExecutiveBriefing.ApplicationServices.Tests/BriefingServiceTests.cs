@@ -293,6 +293,66 @@ namespace ExecutiveBriefing.ApplicationServices.Tests
                 "11. Perguntas recomendadas para reunião"
             );
         }
+
+        [Fact]
+        public async Task GenerateBriefingAsync_Should_CrawlIRPage_And_DownloadAndParsePDFLinks_When_Discovered()
+        {
+            // Arrange
+            var companyName = "Google";
+            var irPageUrl = "https://google.com/investor";
+
+            _aiServiceMock.Setup(a => a.DiscoverCompanyUrlsAsync(
+                    It.IsAny<CompanyName>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(("https://google.com", irPageUrl));
+
+            var mockLinks = new List<(string Text, string Url)>
+            {
+                ("Relatório Anual 2025", "https://google.com/reports/annual-2025.pdf"),
+                ("Press Release 3Q25", "https://google.com/press/release-3q25.pdf"),
+                ("Contact Us", "https://google.com/contact")
+            };
+
+            _webScraperMock.Setup(w => w.ExtractLinksAsync(irPageUrl, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockLinks);
+
+            // Mock downloading the PDF stream
+            var pdfStream = new MemoryStream(new byte[] { 1, 2, 3 });
+            _webScraperMock.Setup(w => w.DownloadFileAsync("https://google.com/reports/annual-2025.pdf", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(pdfStream);
+            _webScraperMock.Setup(w => w.DownloadFileAsync("https://google.com/press/release-3q25.pdf", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(pdfStream);
+
+            _pdfParserMock.Setup(p => p.ParsePdfAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("Real parsed PDF content");
+
+            _aiServiceMock.Setup(a => a.GenerateBriefingSectionsAsync(
+                    It.IsAny<CompanyName>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyCollection<SourceMaterial>>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<BriefingSection>());
+
+            // Act
+            var result = await _briefingService.GenerateBriefingAsync(
+                companyName,
+                null,
+                null,
+                irPageUrl,
+                new List<string>(),
+                new List<(string Filename, Stream Content)>(),
+                CancellationToken.None
+            );
+
+            // Assert
+            _webScraperMock.Verify(w => w.ExtractLinksAsync(irPageUrl, It.IsAny<CancellationToken>()), Times.Once);
+            _webScraperMock.Verify(w => w.DownloadFileAsync("https://google.com/reports/annual-2025.pdf", It.IsAny<CancellationToken>()), Times.Once);
+            _webScraperMock.Verify(w => w.DownloadFileAsync("https://google.com/press/release-3q25.pdf", It.IsAny<CancellationToken>()), Times.Once);
+            _pdfParserMock.Verify(p => p.ParsePdfAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+
+            result.Sources.Should().Contain(s => s.ReferenceName == "https://google.com/reports/annual-2025.pdf" && s.Content == "Real parsed PDF content");
+        }
     }
 }
 

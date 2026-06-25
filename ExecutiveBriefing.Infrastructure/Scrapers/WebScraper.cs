@@ -70,5 +70,89 @@ namespace ExecutiveBriefing.Infrastructure.Scrapers
                 return string.Empty;
             }
         }
+
+        public async Task<List<(string Text, string Url)>> ExtractLinksAsync(string url, CancellationToken cancellationToken = default)
+        {
+            var links = new List<(string Text, string Url)>();
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return links;
+            }
+
+            try
+            {
+                var response = await _httpClient.GetStringAsync(url, cancellationToken);
+                if (string.IsNullOrWhiteSpace(response))
+                {
+                    return links;
+                }
+
+                var doc = new HtmlDocument();
+                doc.LoadHtml(response);
+
+                var root = doc.DocumentNode;
+                if (root == null)
+                {
+                    return links;
+                }
+
+                var baseUri = new Uri(url);
+                var anchorNodes = root.SelectNodes("//a[@href]");
+                if (anchorNodes != null)
+                {
+                    foreach (var node in anchorNodes)
+                    {
+                        var href = node.GetAttributeValue("href", string.Empty);
+                        if (string.IsNullOrWhiteSpace(href) || href.StartsWith('#') || href.StartsWith("javascript:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        string absoluteUrl;
+                        if (Uri.TryCreate(baseUri, href, out var resolvedUri))
+                        {
+                            absoluteUrl = resolvedUri.AbsoluteUri;
+                        }
+                        else
+                        {
+                            absoluteUrl = href;
+                        }
+
+                        var text = HtmlEntity.DeEntitize(node.InnerText ?? string.Empty).Trim();
+                        text = Regex.Replace(text, @"\s+", " ").Trim();
+
+                        if (!string.IsNullOrWhiteSpace(text))
+                        {
+                            links.Add((text, absoluteUrl));
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Graceful degradation: return empty list on failure
+            }
+
+            return links;
+        }
+
+        public async Task<Stream> DownloadFileAsync(string url, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return Stream.Null;
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStreamAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+                return Stream.Null;
+            }
+        }
     }
 }

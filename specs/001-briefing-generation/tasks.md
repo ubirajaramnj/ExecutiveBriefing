@@ -114,6 +114,21 @@
 
 ---
 
+## Phase 5.6: User Story 5 - Real Data Extraction & Inline Source Citation (Priority: P2)
+
+**Goal**: Automatically extract real data points from IR/web pages, annual/quarterly reports (including PDFs), transcripts, and news, and cite sources.
+
+### Tests for User Story 5 (TDD - Required) ⚠️
+- [x] T040 [US5] Write failing unit tests in `ExecutiveBriefing.Infrastructure.Tests/WebScraperTests.cs` to verify `ExtractLinksAsync` extracts links correctly (Red)
+- [x] T041 [US5] Write failing unit tests in `ExecutiveBriefing.ApplicationServices.Tests/BriefingServiceTests.cs` to verify crawling and external PDF parsing flow (Red)
+
+### Implementation for User Story 5
+- [x] T042 [US5] Implement `ExtractLinksAsync` in `IWebScraper.cs` and `WebScraper.cs` (Green)
+- [x] T043 [US5] Implement crawling, PDF downloading, and source parsing in `BriefingService.cs` (Green)
+- [x] T044 [US5] Update system prompt in `GeminiAIService.cs` to enforce real data extraction and inline citations (Green)
+
+---
+
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 

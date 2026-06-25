@@ -70,6 +70,51 @@ namespace ExecutiveBriefing.ApplicationServices.Services
                 {
                     briefing.AddSource(SourceMaterial.Create(SourceType.WebPage, irPageUrl, content));
                 }
+
+                // Crawl and extract links of interest from IR page
+                var links = await _webScraper.ExtractLinksAsync(irPageUrl, cancellationToken);
+                if (links != null)
+                {
+                    var categories = new Dictionary<string, List<string>>
+                    {
+                        { "Relatório Anual", new List<string> { "relatório anual", "relatorio anual", "annual report", "10-k", "10k" } },
+                        { "Release Trimestral", new List<string> { "release", "trimestral", "quarterly", "10-q", "10q", "resultado" } },
+                        { "Apresentação Institucional", new List<string> { "apresentação", "apresentacao", "presentation", "institucional" } },
+                        { "Transcrição de Call", new List<string> { "call", "transcrição", "transcricao", "transcript", "teleconferência", "teleconferencia" } },
+                        { "Comunicado ao Mercado", new List<string> { "comunicado", "fato relevante", "announcement", "notice", "comunicado ao mercado" } }
+                    };
+
+                    foreach (var category in categories)
+                    {
+                        var matchedLink = links.FirstOrDefault(l =>
+                            category.Value.Any(keyword => l.Text.Contains(keyword, StringComparison.OrdinalIgnoreCase) || l.Url.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                        );
+
+                        if (matchedLink.Url != null)
+                        {
+                            if (matchedLink.Url.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || matchedLink.Url.Contains("/pdf/", StringComparison.OrdinalIgnoreCase))
+                            {
+                                using var pdfStream = await _webScraper.DownloadFileAsync(matchedLink.Url, cancellationToken);
+                                if (pdfStream != Stream.Null)
+                                {
+                                    var parsedContent = await _pdfParser.ParsePdfAsync(pdfStream, cancellationToken);
+                                    if (!string.IsNullOrWhiteSpace(parsedContent))
+                                    {
+                                        briefing.AddSource(SourceMaterial.Create(SourceType.WebPage, matchedLink.Url, parsedContent));
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var parsedContent = await _webScraper.ScrapeUrlAsync(matchedLink.Url, cancellationToken);
+                                if (!string.IsNullOrWhiteSpace(parsedContent))
+                                {
+                                    briefing.AddSource(SourceMaterial.Create(SourceType.WebPage, matchedLink.Url, parsedContent));
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // 3. Scrape Additional Links

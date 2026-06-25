@@ -50,6 +50,12 @@ namespace ExecutiveBriefing.Infrastructure.AI
             promptBuilder.AppendLine("  * Aprofundar especificamente nas áreas de Tecnologia, Digital, Dados, Segurança, Inovação e Transformação. Gerar bullets sobre: planejamento estratégico de Tecnologia, prioridades atuais da área de Tecnologia, estratégia digital, projetos de transformação em andamento, uso de IA, automação, cloud, dados, analytics, cibersegurança, modernização de sistemas e últimas vitórias.");
             promptBuilder.AppendLine("## 11. Perguntas recomendadas para reunião");
             promptBuilder.AppendLine("  * Formular de 3 a 5 perguntas altamente qualificadas e personalizadas para reunião com executivos, focadas em desafios, oportunidades, tecnologia e negócios identificados no briefing.");
+            promptBuilder.AppendLine();
+            promptBuilder.AppendLine("CRITICAL INSTRUCTIONS:");
+            promptBuilder.AppendLine("1. Extract and include real, specific data points (such as actual revenue numbers, EBITDA, margins, project names, executive names, and dates) from the source materials. Do NOT use generic text or placeholders.");
+            promptBuilder.AppendLine("2. For EVERY fact, figure, name, or claim you write, you MUST include an inline citation of the source document or link in the format '[Fonte: <SourceReference>]' (e.g., [Fonte: Relatório Anual 2025], [Fonte: Release de Resultados 3Q25], [Fonte: Anexo: DFP.pdf], or [Fonte: Link: ir.company.com]).");
+            promptBuilder.AppendLine("3. Write the briefing sections in Portuguese, maintaining a professional and executive tone.");
+            promptBuilder.AppendLine();
             promptBuilder.AppendLine("Base your analysis on the following source materials retrieved:");
 
             foreach (var source in sources)

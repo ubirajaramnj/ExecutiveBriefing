@@ -99,6 +99,13 @@ ExecutiveBriefing.Api/
 └── Program.cs
 ```
 
+## Technical Context: User Story 5 (Real Data Extraction & Citations)
+We will introduce:
+1. **Link Extraction in Scrapers**: Extend `IWebScraper` to extract all relative/absolute hyperlinks and their text from scraped pages.
+2. **Crawl & Categorization in Services**: Categorize links (Annual Reports, releases, call transcripts, announcements) based on keyword matching.
+3. **External PDF Parsing**: Download and parse PDF links directly from the IR/news scraping process via `HttpClient` and `IPdfParser`.
+4. **Enhanced Prompts & Citations**: Direct the LLM to write real figures, names, and facts and include inline citations (e.g., `[Fonte: Relatório Anual 2025]`).
+
 ## Complexity Tracking
 
 No violations of the Constitution. The architecture is kept simple and follows the layered structure defined during project initialization.

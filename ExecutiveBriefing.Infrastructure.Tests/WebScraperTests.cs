@@ -60,5 +60,45 @@ namespace ExecutiveBriefing.Infrastructure.Tests
             result.Should().NotContain("Navigation Header");
             result.Should().NotContain("Copyright 2026");
         }
+
+        [Fact]
+        public async Task ExtractLinksAsync_Should_ReturnAbsoluteAndRelativeLinks_WithCleanText()
+        {
+            // Arrange
+            var html = @"
+                <html>
+                <body>
+                    <a href='/reports/annual-2025.pdf'>Relatório Anual 2025</a>
+                    <a href='https://example.com/press/release-3q25'>Press Release 3Q25</a>
+                    <a href='#anchor'>Skip to main</a>
+                    <a>No href link</a>
+                </body>
+                </html>";
+
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            handlerMock
+               .Protected()
+               .Setup<Task<HttpResponseMessage>>(
+                  "SendAsync",
+                  ItExpr.IsAny<HttpRequestMessage>(),
+                  ItExpr.IsAny<CancellationToken>()
+               )
+               .ReturnsAsync(new HttpResponseMessage()
+               {
+                   StatusCode = HttpStatusCode.OK,
+                   Content = new StringContent(html),
+               });
+
+            var httpClient = new HttpClient(handlerMock.Object);
+            var scraper = new WebScraper(httpClient);
+
+            // Act
+            var links = await scraper.ExtractLinksAsync("https://example.com/ir", CancellationToken.None);
+
+            // Assert
+            links.Should().HaveCount(2);
+            links.Should().Contain(l => l.Text == "Relatório Anual 2025" && l.Url == "https://example.com/reports/annual-2025.pdf");
+            links.Should().Contain(l => l.Text == "Press Release 3Q25" && l.Url == "https://example.com/press/release-3q25");
+        }
     }
 }
