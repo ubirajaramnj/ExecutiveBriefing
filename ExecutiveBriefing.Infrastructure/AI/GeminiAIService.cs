@@ -17,6 +17,10 @@ namespace ExecutiveBriefing.Infrastructure.AI
         {
             _httpClient = httpClient;
             _apiKey = configuration["Gemini:ApiKey"] ?? string.Empty;
+            if (_apiKey == "YOUR_GEMINI_API_KEY")
+            {
+                _apiKey = string.Empty;
+            }
             _model = configuration["Gemini:Model"] ?? "gemini-1.5-flash";
             _baseUrl = configuration["Gemini:BaseUrl"] ?? "https://generativelanguage.googleapis.com/v1beta/models/";
         }
@@ -27,12 +31,6 @@ namespace ExecutiveBriefing.Infrastructure.AI
             IReadOnlyCollection<SourceMaterial> sources,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(_apiKey))
-            {
-                // Fallback mock if API key is not configured (e.g. during local tests)
-                return GetMockSections(companyName.Value);
-            }
-
             var promptBuilder = new StringBuilder();
             promptBuilder.AppendLine($"Generate a professional executive briefing for the company '{companyName.Value}' (Market: {market ?? "Global"}).");
             promptBuilder.AppendLine("Provide the output in valid markdown with the following sections: Overview, Financial Highlights, Strategic Outlook, Recent News.");
@@ -42,6 +40,16 @@ namespace ExecutiveBriefing.Infrastructure.AI
             {
                 promptBuilder.AppendLine($"--- SOURCE: {source.ReferenceName} ({source.Type}) ---");
                 promptBuilder.AppendLine(source.Content.Length > 2000 ? source.Content[..2000] : source.Content);
+            }
+
+            if (string.IsNullOrWhiteSpace(_apiKey))
+            {
+                var localResult = await GenerateViaOllamaAsync(promptBuilder.ToString(), cancellationToken);
+                if (localResult != null)
+                {
+                    return ParseMarkdownToSections(localResult);
+                }
+                return GetMockSections(companyName.Value);
             }
 
             var requestBody = new
@@ -97,7 +105,11 @@ namespace ExecutiveBriefing.Infrastructure.AI
         {
             if (string.IsNullOrWhiteSpace(_apiKey))
             {
-                // Fallback mock URLs for local testing
+                var localResult = await DiscoverViaOllamaAsync(companyName, market, cancellationToken);
+                if (localResult != null)
+                {
+                    return localResult.Value;
+                }
                 if (companyName.Value.Equals("Google", StringComparison.OrdinalIgnoreCase))
                 {
                     return ("https://www.google.com", "https://abc.xyz/investor");
@@ -232,6 +244,102 @@ namespace ExecutiveBriefing.Infrastructure.AI
                 BriefingSection.Create("Financial Highlights", $"### Financials\nMock financial highlights for {companyName}.", 2),
                 BriefingSection.Create("Strategic Outlook", $"### Strategy\nMock strategic direction.", 3)
             };
+        }
+
+        private async Task<string?> GenerateViaOllamaAsync(string prompt, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var requestBody = new
+                {
+                    model = "gemma2:2b",
+                    prompt = prompt,
+                    stream = false
+                };
+
+                var requestContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("http://localhost:11434/api/generate", requestContent, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                var jsonString = await response.Content.ReadAsStringAsync(cancellationToken);
+                using var doc = JsonDocument.Parse(jsonString);
+                return doc.RootElement.GetProperty("response").GetString();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private async Task<(string? WebsiteUrl, string? IrPageUrl)?> DiscoverViaOllamaAsync(CompanyName companyName, string? market, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var prompt = $"Identify the official main website URL and the Investor Relations page URL for the company '{companyName.Value}' (Market: {market ?? "Global"}). " +
+                             "Respond ONLY with a valid raw JSON object matching this schema: { \"websiteUrl\": \"https://...\", \"irPageUrl\": \"https://...\" }. " +
+                             "Do not include markdown code block formatting like ```json or any other text.";
+
+                var requestBody = new
+                {
+                    model = "gemma2:2b",
+                    prompt = prompt,
+                    stream = false,
+                    options = new { temperature = 0.0 }
+                };
+
+                var requestContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("http://localhost:11434/api/generate", requestContent, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                var jsonString = await response.Content.ReadAsStringAsync(cancellationToken);
+                using var doc = JsonDocument.Parse(jsonString);
+                var textResponse = doc.RootElement.GetProperty("response").GetString();
+
+                if (string.IsNullOrWhiteSpace(textResponse))
+                {
+                    return null;
+                }
+
+                var cleanedText = textResponse.Trim();
+                if (cleanedText.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
+                {
+                    cleanedText = cleanedText["```json".Length..].Trim();
+                }
+                if (cleanedText.StartsWith("```", StringComparison.OrdinalIgnoreCase))
+                {
+                    cleanedText = cleanedText["```".Length..].Trim();
+                }
+                if (cleanedText.EndsWith("```"))
+                {
+                    cleanedText = cleanedText[..^"```".Length].Trim();
+                }
+
+                using var parsedResponse = JsonDocument.Parse(cleanedText);
+                var root = parsedResponse.RootElement;
+                string? website = null;
+                string? ir = null;
+
+                if (root.TryGetProperty("websiteUrl", out var webProp))
+                {
+                    website = webProp.GetString();
+                }
+                if (root.TryGetProperty("irPageUrl", out var irProp))
+                {
+                    ir = irProp.GetString();
+                }
+
+                return (string.IsNullOrWhiteSpace(website) ? null : website, string.IsNullOrWhiteSpace(ir) ? null : ir);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }
